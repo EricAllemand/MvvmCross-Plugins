@@ -46,6 +46,10 @@
       <HintPath>..\..\packages\MvvmCross.Core.4.3.0\lib\net45\MvvmCross.Wpf.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="PixelFormatsConverter, Version=0.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\PixelFormatsConverter.0.1.0\lib\net452\PixelFormatsConverter.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />

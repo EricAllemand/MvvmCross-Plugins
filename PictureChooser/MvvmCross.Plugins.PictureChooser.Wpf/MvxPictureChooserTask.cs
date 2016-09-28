@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Microsoft.Win32;
+using PixelFormatsConverter;
 
 
 namespace MvvmCross.Plugins.PictureChooser.Wpf
@@ -33,25 +35,27 @@ namespace MvvmCross.Plugins.PictureChooser.Wpf
             {
                 try
                 {
-                    var bm = new Bitmap(filePicker.FileName);
-                    if (bm != null)
+                    using (var bm = new Bitmap(filePicker.FileName))
                     {
-                        int targetWidth;
-                        int targetHeight;
+                        if (bm != null)
+                        {
+                            int targetWidth;
+                            int targetHeight;
 
-                        MvxPictureDimensionHelper.TargetWidthAndHeight(maxPixelDimension, bm.Width, bm.Height, out targetWidth, out targetHeight);
-                        var transformBM = new TransformedBitmap(ConvertBitmapInBitmapSource(bm), new ScaleTransform(targetWidth / (double)bm.Width, targetHeight / (double)bm.Height));
+                            MvxPictureDimensionHelper.TargetWidthAndHeight(maxPixelDimension, bm.Width, bm.Height, out targetWidth, out targetHeight);
+                            var transformBM = new TransformedBitmap(ConvertBitmapInBitmapSource(bm), new ScaleTransform(targetWidth / (double)bm.Width, targetHeight / (double)bm.Height));
 
-                        JpegBitmapEncoder encoder = new JpegBitmapEncoder();
-                        encoder.QualityLevel = percentQuality;
+                            JpegBitmapEncoder encoder = new JpegBitmapEncoder();
+                            encoder.QualityLevel = percentQuality;
 
-                        MemoryStream stream = new MemoryStream();
-                        encoder.Frames.Add(BitmapFrame.Create(transformBM));
-                        encoder.Save(stream);
+                            MemoryStream stream = new MemoryStream();
+                            encoder.Frames.Add(BitmapFrame.Create(transformBM));
+                            encoder.Save(stream);
 
-                        stream.Position = 0;
+                            stream.Position = 0;
 
-                        pictureAvailable(stream, filePicker.FileName);
+                            pictureAvailable(stream, filePicker.FileName);
+                        }
                     }
                 }
                 catch (ArgumentException)
@@ -86,9 +90,10 @@ namespace MvvmCross.Plugins.PictureChooser.Wpf
                 new Rectangle(0, 0, bitmap.Width, bitmap.Height),
                 System.Drawing.Imaging.ImageLockMode.ReadOnly, bitmap.PixelFormat);
 
+            var bitmapPalette = bitmap.Palette.Entries.Length == 0 ? null : new BitmapPalette(bitmap.Palette.Entries.Select(col => System.Windows.Media.Color.FromArgb(col.A, col.R, col.G, col.B)).ToList());
 
             var bitmapSource = BitmapSource.Create(
-                 bitmapData.Width, bitmapData.Height, 96, 96, PixelFormats.Bgr24, null,
+                 bitmapData.Width, bitmapData.Height, 96, 96, bitmap.PixelFormat.Convert(), bitmapPalette,
                  bitmapData.Scan0, bitmapData.Stride * bitmapData.Height, bitmapData.Stride);
 
             bitmap.UnlockBits(bitmapData);
