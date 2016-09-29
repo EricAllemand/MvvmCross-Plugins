@@ -33,34 +33,27 @@ namespace MvvmCross.Plugins.PictureChooser.Wpf
 
             if (filePicker.ShowDialog() == true)
             {
-                try
+                using (var bm = new Bitmap(filePicker.FileName))
                 {
-                    using (var bm = new Bitmap(filePicker.FileName))
+                    if (bm != null)
                     {
-                        if (bm != null)
-                        {
-                            int targetWidth;
-                            int targetHeight;
+                        int targetWidth;
+                        int targetHeight;
 
-                            MvxPictureDimensionHelper.TargetWidthAndHeight(maxPixelDimension, bm.Width, bm.Height, out targetWidth, out targetHeight);
-                            var transformBM = new TransformedBitmap(ConvertBitmapInBitmapSource(bm), new ScaleTransform(targetWidth / (double)bm.Width, targetHeight / (double)bm.Height));
+                        MvxPictureDimensionHelper.TargetWidthAndHeight(maxPixelDimension, bm.Width, bm.Height, out targetWidth, out targetHeight);
+                        var transformBM = new TransformedBitmap(ConvertBitmapInBitmapSource(bm), new ScaleTransform(targetWidth / (double)bm.Width, targetHeight / (double)bm.Height));
 
-                            JpegBitmapEncoder encoder = new JpegBitmapEncoder();
-                            encoder.QualityLevel = percentQuality;
+                        JpegBitmapEncoder encoder = new JpegBitmapEncoder();
+                        encoder.QualityLevel = percentQuality;
 
-                            MemoryStream stream = new MemoryStream();
-                            encoder.Frames.Add(BitmapFrame.Create(transformBM));
-                            encoder.Save(stream);
+                        MemoryStream stream = new MemoryStream();
+                        encoder.Frames.Add(BitmapFrame.Create(transformBM));
+                        encoder.Save(stream);
 
-                            stream.Position = 0;
+                        stream.Position = 0;
 
-                            pictureAvailable(stream, filePicker.FileName);
-                        }
+                        pictureAvailable(stream, filePicker.FileName);
                     }
-                }
-                catch (ArgumentException)
-                {
-                    assumeCancelled();
                 }
             }
             else
